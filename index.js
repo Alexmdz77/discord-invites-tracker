@@ -142,11 +142,44 @@ module.exports = class extends EventEmitter {
             await keyv.set(`invitestracker_${guild.id}_${data.invitedBy}`, userData);
             keyv.delete(`invitestracker_${guild.id}_${member.id}`);
         });
+
+        this.getUserData = async function(member) {
+            if (!member) throw new Error('Please pass the member');
+            let userData = await keyv.get(`invitestracker_${member.guild.id}_${member.id}`);
+            if (!userData){
+                userData = {
+                    guildId: member.guild.id,
+                    userId: member.id,
+                    invitedBy: null,
+                    invites: {
+                        regular: 0,
+                        bonus: 0,
+                        leaves: 0,
+                        fake: 0,
+                        total: 0
+                    }
+                };
+            }
+            else return userData;
+        };
         
-        this.getInvites = async function(user, guild) {
-            if (!user || !guild) throw new Error('Please pass the user');
-            let userData = await keyv.get(`invitestracker_${guild.id}_${user.id}`);
-            if (!userData) return 0;
+        this.getInvites = async function(member) {
+            if (!member) throw new Error('Please pass the member');
+            let userData = await keyv.get(`invitestracker_${member.guild.id}_${member.id}`);
+            if (!userData) {
+                userData = {
+                    guildId: member.guild.id,
+                    userId: member.id,
+                    invitedBy: null,
+                    invites: {
+                        regular: 0,
+                        bonus: 0,
+                        leaves: 0,
+                        fake: 0,
+                        total: 0
+                    }
+                };
+            }
             else return userData.invites;
         };
 
