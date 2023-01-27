@@ -6,8 +6,7 @@
   "license": "MIT",
   "dependencies": {
     "discord.js": "^13.6.0",
-    "@keyv/sqlite": "^3.5.3",
-    "keyv": "^4.4.1"
+    "quick.db": "^9.0.8"
   },
   "author": "surojit#1781",
   "keywords": [

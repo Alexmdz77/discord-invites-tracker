@@ -1,7 +1,7 @@
 const { EventEmitter } = require('events');
 
-const Keyv = require('keyv');
-const keyv = new Keyv('sqlite://database.sqlite');
+const { QuickDB } = require('quick.db')
+const db = new QuickDB({ filePath: 'invites.sqlite' });
 
 module.exports = class extends EventEmitter {
     constructor(client, options = {}) {
@@ -45,10 +45,10 @@ module.exports = class extends EventEmitter {
                         userId: member.id,
                         invitedBy: user
                     };
-                    await keyv.set(`invitestracker_${guild.id}_${member.id}`, data);
+                    await db.set(`invitestracker_${guild.id}_${member.id}`, data);
                     member.inviter = user;
                     let getData = await new Promise(async (resolve) => {
-                        let userData = await keyv.get(`invitestracker_${guild.id}_${inviter}`);
+                        let userData = await db.get(`invitestracker_${guild.id}_${inviter}`);
                         if (!userData || !userData.invites) {
                             userData = {
                                 guildId: guild.id,
@@ -69,7 +69,7 @@ module.exports = class extends EventEmitter {
                             fake: userData.invites.fake,
                             total: userData.invites.total + 1
                         }
-                        await keyv.set(`invitestracker_${guild.id}_${inviter}`, userData);
+                        await db.set(`invitestracker_${guild.id}_${inviter}`, userData);
                         resolve(userData);
                     });
                     member.invites = getData.invites;
@@ -85,9 +85,9 @@ module.exports = class extends EventEmitter {
                 userId: member.id,
                 invitedBy: 'vanity'
             };
-            await keyv.set(`invitestracker_${guild.id}_${member.id}`, data);
+            await db.set(`invitestracker_${guild.id}_${member.id}`, data);
             let getData = await new Promise(async (resolve) => {
-                let userData = await keyv.get(`invitestracker_${guild.id}_${member.id}`);
+                let userData = await db.get(`invitestracker_${guild.id}_${member.id}`);
                 if (!userData || !userData.invites) {
                     userData = {
                         guildId: guild.id,
@@ -108,7 +108,7 @@ module.exports = class extends EventEmitter {
                     fake: userData.invites.fake,
                     total: userData.invites.total
                 }
-                await keyv.set(`invitestracker_${guild.id}_${member.id}`, userData);
+                await db.set(`invitestracker_${guild.id}_${member.id}`, userData);
                 resolve(userData);
             });
             member.invites = getData.invites;
@@ -117,9 +117,9 @@ module.exports = class extends EventEmitter {
 
         this.client.on('guildMemberRemove', async (member) => {
             const { guild } = member;
-            let data = await keyv.get(`invitestracker_${guild.id}_${member.id}`);
+            let data = await db.get(`invitestracker_${guild.id}_${member.id}`);
             if (!data) return;
-            let userData = await keyv.get(`invitestracker_${guild.id}_${data.invitedBy}`);
+            let userData = await db.get(`invitestracker_${guild.id}_${data.invitedBy}`);
             if (userData && userData.invites) {
                 userData.invites = {
                     regular: userData.invites.regular,
@@ -139,20 +139,21 @@ module.exports = class extends EventEmitter {
                     total: 0
                 }
             };
-            await keyv.set(`invitestracker_${guild.id}_${data.invitedBy}`, userData);
-            keyv.delete(`invitestracker_${guild.id}_${member.id}`);
+            await db.set(`invitestracker_${guild.id}_${data.invitedBy}`, userData);
+            db.delete(`invitestracker_${guild.id}_${member.id}`);
         });
 
         this.getUserData = async function(member) {
             if (!member) throw new Error('Please pass the member');
-            let userData = await keyv.get(`invitestracker_${member.guild.id}_${member.id}`);
-            if (!userData){
+            let userData = await db.get(`invitestracker_${member.guild.id}_${member.id}`);
+            if (!userData) {
                 userData = {
                     guildId: member.guild.id,
                     userId: member.id,
                     invitedBy: null
                 };
-            } else if (!userData.invites) {
+            }
+            if (!userData.invites) {
                 userData.invites = {
                     regular: 0,
                     bonus: 0,
@@ -166,14 +167,15 @@ module.exports = class extends EventEmitter {
         
         this.getInvites = async function(member) {
             if (!member) throw new Error('Please pass the member');
-            let userData = await keyv.get(`invitestracker_${member.guild.id}_${member.id}`);
+            let userData = await db.get(`invitestracker_${member.guild.id}_${member.id}`);
             if (!userData) {
                 userData = {
                     guildId: member.guild.id,
                     userId: member.id,
                     invitedBy: null
                 };
-            } else if (!userData.invites) {
+            }
+            if (!userData.invites) {
                 userData.invites = {
                     regular: 0,
                     bonus: 0,
@@ -187,18 +189,30 @@ module.exports = class extends EventEmitter {
 
         this.getAllInvites = async function(guild) {
             if (!guild) throw new Error('Please pass the guild');
-            const users = keyv.all().filter(element => element.startsWith(`invitestracker_${guild.id}`))
-            if (!users || users.length == 0) return 0;
+            const users = (await db.all()).filter(element => element.id.startsWith(`invitestracker_${guild.id}`))
+                .map(element => {
+                    if (!element.value.invites) {
+                        element.value.invites = {
+                            regular: 0,
+                            bonus: 0,
+                            leaves: 0,
+                            fake: 0,
+                            total: 0
+                        }
+                    }
+                return element.value;
+            })
+            if (!users || users.length == 0) return null;
             return users;
         };
 
-        this.addBonusInvites = async function(user, guild, amount) {
-            if (!user || !guild) throw new Error('Please pass the user');
-            let userData = await keyv.get(`invitestracker_${guild.id}_${user.id}`);
+        this.addBonusInvites = async function(member, amount) {
+            if (!member) throw new Error('Please pass the member');
+            let userData = await db.get(`invitestracker_${member.guild.id}_${member.user.id}`);
             if (!userData || !userData.invites){
                 userData = {
-                    guildId: guild.id,
-                    userId: user.id,
+                    guildId: member.guild.id,
+                    userId: member.user.id,
                     invites: {
                         regular: 0,
                         bonus: 0,
@@ -215,13 +229,13 @@ module.exports = class extends EventEmitter {
                 fake: userData.invites.fake,
                 total: userData.invites.total + amount
             }
-            await keyv.set(`invitestracker_${guild.id}_${user.id}`, userData);
+            await db.set(`invitestracker_${member.guild.id}_${member.user.id}`, userData);
             return userData.invites;
         }
 
         this.removeBonusInvites = async function(user, guild, amount) {
             if (!user || !guild) throw new Error('Please pass the user');
-            let userData = await keyv.get(`invitestracker_${guild.id}_${user.id}`);
+            let userData = await db.get(`invitestracker_${guild.id}_${user.id}`);
             if (!userData || !userData.invites){
                 userData = {
                     guildId: guild.id,
@@ -242,7 +256,7 @@ module.exports = class extends EventEmitter {
                 fake: userData.invites.fake,
                 total: userData.invites.total - amount < 0 ? 0 : userData.invites.total - amount
             }
-            await keyv.set(`invitestracker_${guild.id}_${user.id}`, userData);
+            await db.set(`invitestracker_${guild.id}_${user.id}`, userData);
             return userData.invites;
         }
     };
