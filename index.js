@@ -39,13 +39,13 @@ module.exports = class extends EventEmitter {
 
             for (const inviter in invitesAfter) {
                 if (invitesAfter[inviter] - invitesBefore[inviter] === 1) {
+                    const user = await client.users.fetch(inviter);
                     let data = {
                         guildId: guild.id,
                         userId: member.id,
-                        invitedBy: inviter
+                        invitedBy: user
                     };
                     await keyv.set(`invitestracker_${guild.id}_${member.id}`, data);
-                    const user = await client.users.fetch(inviter);
                     member.inviter = user;
                     let getData = await new Promise(async (resolve) => {
                         let userData = await keyv.get(`invitestracker_${guild.id}_${inviter}`);
