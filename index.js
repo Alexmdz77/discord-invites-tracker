@@ -1,6 +1,6 @@
 const { EventEmitter } = require('events');
 
-const { QuickDB } = require('quick.db')
+const { QuickDB } = require('quick.db');
 const db = new QuickDB({ filePath: 'invites.sqlite' });
 
 module.exports = class extends EventEmitter {
@@ -184,7 +184,7 @@ module.exports = class extends EventEmitter {
                     total: 0
                 }
             }
-            else return userData.invites;
+            return userData.invites;
         };
 
         this.getAllInvites = async function(guild) {
@@ -233,13 +233,13 @@ module.exports = class extends EventEmitter {
             return userData.invites;
         }
 
-        this.removeBonusInvites = async function(user, guild, amount) {
-            if (!user || !guild) throw new Error('Please pass the user');
-            let userData = await db.get(`invitestracker_${guild.id}_${user.id}`);
+        this.removeBonusInvites = async function(member, amount) {
+            if (!member) throw new Error('Please pass the user');
+            let userData = await db.get(`invitestracker_${member.guild.id}_${member.user.id}`);
             if (!userData || !userData.invites){
                 userData = {
-                    guildId: guild.id,
-                    userId: user.id,
+                    guildId: member.guild.id,
+                    userId: member.user.id,
                     invites: {
                         regular: 0,
                         bonus: 0,
@@ -256,9 +256,47 @@ module.exports = class extends EventEmitter {
                 fake: userData.invites.fake,
                 total: userData.invites.total - amount < 0 ? 0 : userData.invites.total - amount
             }
-            await db.set(`invitestracker_${guild.id}_${user.id}`, userData);
+            await db.set(`invitestracker_${member.guild.id}_${member.user.id}`, userData);
             return userData.invites;
         }
+
+        this.resetAllInvites = async function(guild) {
+            if (!guild) throw new Error('Please pass the guild');
+            let usersData = (await db.all()).filter(element => element.id.startsWith(`invitestracker_${guild.id}`))
+            if (!usersData) return;
+            for (const userData of usersData) {
+                await db.set(`${userData.id}.invites`, {regular: 0, bonus: 0, leaves: 0, fake: 0, total: 0})
+            }
+            return;
+        }
+
+        this.resetUserInvites = async function(member) {
+            if (!member) throw new Error('Please pass the member');
+            let userData = await db.get(`invitestracker_${member.guild.id}_${member.user.id}`)
+            if (!userData || !userData.invites){
+                userData = {
+                    guildId: member.guild.id,
+                    userId: member.user.id,
+                    invites: {
+                        regular: 0,
+                        bonus: 0,
+                        leaves: 0,
+                        fake: 0,
+                        total: 0
+                    }
+                };
+            }
+            userData.invites = {
+                regular: 0,
+                bonus: 0,
+                leaves: 0,
+                fake: 0,
+                total: 0
+            }
+            await db.set(`invitestracker_${member.guild.id}_${member.user.id}`, userData);
+            return userData.invites;
+        }
+        
     };
 
 };
