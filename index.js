@@ -150,17 +150,18 @@ module.exports = class extends EventEmitter {
                 userData = {
                     guildId: member.guild.id,
                     userId: member.id,
-                    invitedBy: null,
-                    invites: {
-                        regular: 0,
-                        bonus: 0,
-                        leaves: 0,
-                        fake: 0,
-                        total: 0
-                    }
+                    invitedBy: null
                 };
+            } else if (!userData.invites) {
+                userData.invites = {
+                    regular: 0,
+                    bonus: 0,
+                    leaves: 0,
+                    fake: 0,
+                    total: 0
+                }
             }
-            else return userData;
+            return userData;
         };
         
         this.getInvites = async function(member) {
@@ -170,15 +171,16 @@ module.exports = class extends EventEmitter {
                 userData = {
                     guildId: member.guild.id,
                     userId: member.id,
-                    invitedBy: null,
-                    invites: {
-                        regular: 0,
-                        bonus: 0,
-                        leaves: 0,
-                        fake: 0,
-                        total: 0
-                    }
+                    invitedBy: null
                 };
+            } else if (!userData.invites) {
+                userData.invites = {
+                    regular: 0,
+                    bonus: 0,
+                    leaves: 0,
+                    fake: 0,
+                    total: 0
+                }
             }
             else return userData.invites;
         };
@@ -190,7 +192,7 @@ module.exports = class extends EventEmitter {
             return users;
         };
 
-        this.addBonusInvite = async function(user, guild, amount) {
+        this.addBonusInvites = async function(user, guild, amount) {
             if (!user || !guild) throw new Error('Please pass the user');
             let userData = await keyv.get(`invitestracker_${guild.id}_${user.id}`);
             if (!userData || !userData.invites){
@@ -217,7 +219,7 @@ module.exports = class extends EventEmitter {
             return userData.invites;
         }
 
-        this.removeBonusInvite = async function(user, guild, amount) {
+        this.removeBonusInvites = async function(user, guild, amount) {
             if (!user || !guild) throw new Error('Please pass the user');
             let userData = await keyv.get(`invitestracker_${guild.id}_${user.id}`);
             if (!userData || !userData.invites){
