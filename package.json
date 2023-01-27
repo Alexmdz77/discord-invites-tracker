@@ -17,10 +17,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iamsurojit/discord-invites-tracker.git"
+    "url": "git+https://github.com/Alexmdz77/discord-invites-tracker-sqlite.git"
   },
-  "homepage": "https://github.com/iamsurojit/discord-invites-tracker#readme",
+  "homepage": "https://github.com/Alexmdz77/discord-invites-tracker-sqlite#readme",
   "bugs": {
-    "url": "https://github.com/iamsurojit/discord-invites-tracker/issues"
+    "url": "https://github.com/Alexmdz77/discord-invites-tracker-sqlite/issues"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
