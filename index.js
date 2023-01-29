@@ -39,18 +39,22 @@ module.exports = class extends EventEmitter {
 
             for (const inviter in invitesAfter) {
                 if (invitesAfter[inviter] - invitesBefore[inviter] === 1) {
-                    const user = await client.users.fetch(inviter);
-                    let data = {
-                        guildId: guild.id,
-                        userId: member.id,
-                        invitedBy: user
-                    };
-                    await db.set(`invitestracker_${guild.id}_${member.id}`, data);
-                    member.inviter = user;
+                    const user_inviter = await client.users.fetch(inviter);
+                    const user_data = await db.get(`invitestracker_${guild.id}_${member.id}`);
+                    if (!user_data || !user_data.invitedBy) {
+                        let user_data = {
+                            ...user_data,
+                            guildId: guild.id,
+                            userId: member.id,
+                            invitedBy: user_inviter
+                        };
+                    }
+                    await db.set(`invitestracker_${guild.id}_${member.id}`, user_data);
+                    member.inviter = user_inviter;
                     let getData = await new Promise(async (resolve) => {
-                        let userData = await db.get(`invitestracker_${guild.id}_${inviter}`);
-                        if (!userData || !userData.invites) {
-                            userData = {
+                        let user_inviter_data = await db.get(`invitestracker_${guild.id}_${inviter}`);
+                        if (!user_inviter_data || !user_inviter_data.invites) {
+                            user_inviter_data = {
                                 guildId: guild.id,
                                 userId: inviter,
                                 invites: {
@@ -62,15 +66,15 @@ module.exports = class extends EventEmitter {
                                 }
                             };
                         };
-                        userData.invites = {
-                            regular: userData.invites.regular + 1,
-                            bonus: userData.invites.bonus,
-                            leaves: userData.invites.leaves,
-                            fake: userData.invites.fake,
-                            total: userData.invites.total + 1
+                        user_inviter_data.invites = {
+                            regular: user_inviter_data.invites.regular + 1,
+                            bonus: user_inviter_data.invites.bonus,
+                            leaves: user_inviter_data.invites.leaves,
+                            fake: user_inviter_data.invites.fake,
+                            total: user_inviter_data.invites.total + 1
                         }
-                        await db.set(`invitestracker_${guild.id}_${inviter}`, userData);
-                        resolve(userData);
+                        await db.set(`invitestracker_${guild.id}_${inviter}`, user_inviter_data);
+                        resolve(user_inviter_data);
                     });
                     member.invites = getData.invites;
                     invitesCount[guild.id] = invitesAfter;
@@ -119,6 +123,7 @@ module.exports = class extends EventEmitter {
             const { guild } = member;
             let data = await db.get(`invitestracker_${guild.id}_${member.id}`);
             if (!data) return;
+            if(data.invitedBy === 'vanity') return;
             let userData = await db.get(`invitestracker_${guild.id}_${data.invitedBy.id}`);
             if (userData && userData.invites) {
                 userData.invites = {
@@ -140,7 +145,7 @@ module.exports = class extends EventEmitter {
                 }
             };
             await db.set(`invitestracker_${guild.id}_${data.invitedBy.id}`, userData);
-            db.delete(`invitestracker_${guild.id}_${member.id}`);
+            // db.delete(`invitestracker_${guild.id}_${member.id}`);
         });
 
         this.getUserData = async function(member) {
