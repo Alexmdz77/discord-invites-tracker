@@ -40,16 +40,18 @@ module.exports = class extends EventEmitter {
             for (const inviter in invitesAfter) {
                 if (invitesAfter[inviter] - invitesBefore[inviter] === 1) {
                     const user_inviter = await client.users.fetch(inviter);
-                    const user_data = await db.get(`invitestracker_${guild.id}_${member.id}`);
-                    if (!user_data || !user_data.invitedBy) {
-                        let user_data = {
-                            ...user_data,
+                    let userData = await db.get(`invitestracker_${guild.id}_${member.id}`);
+                    if (!userData || !userData.invitedBy) {
+                        userData = {
+                            ...userData,
                             guildId: guild.id,
                             userId: member.id,
                             invitedBy: user_inviter
                         };
+                    } else {
+                        userData.invitedBy = user_inviter
                     }
-                    await db.set(`invitestracker_${guild.id}_${member.id}`, user_data);
+                    await db.set(`invitestracker_${guild.id}_${member.id}`, userData);
                     member.inviter = user_inviter;
                     let getData = await new Promise(async (resolve) => {
                         let user_inviter_data = await db.get(`invitestracker_${guild.id}_${inviter}`);
@@ -82,20 +84,16 @@ module.exports = class extends EventEmitter {
                     return this.emit('guildMemberAdd', member);
                 }
             };
+            console.log(isVanity)
             if (!isVanity) return;
             member.inviter = 'vanity';
-            let data = {
-                guildId: guild.id,
-                userId: member.id,
-                invitedBy: 'vanity'
-            };
-            await db.set(`invitestracker_${guild.id}_${member.id}`, data);
             let getData = await new Promise(async (resolve) => {
                 let userData = await db.get(`invitestracker_${guild.id}_${member.id}`);
                 if (!userData || !userData.invites) {
                     userData = {
                         guildId: guild.id,
                         userId: member.id,
+                        invitedBy: "vanity",
                         invites: {
                             regular: 0,
                             bonus: 0,
