@@ -8,7 +8,8 @@
     "discord.js": "^13.6.0",
     "quick.db": "^9.0.8"
   },
-  "author": "surojit#1781",
+  "author": "Alexmdz77 <alexandretrv@gmail.com> (https://alexandretrouve.fr/)",
+  "contributors": ["ZIIROX77", "surojit#1781"],
   "keywords": [
     "discord invite tracker",
     "discord tracker",
