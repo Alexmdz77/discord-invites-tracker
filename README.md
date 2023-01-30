@@ -1,9 +1,9 @@
 <div align="center">
 <h1>Discord Invites Tracker</h1>
 <p>
-    <a href="https://discord.gg/4JVfk6uKCk"><img src="https://img.shields.io/discord/827220483496869899" alt="discord server" /></a>
-    <a href="https://www.npmjs.com/package/discord-invites-tracker"><img src="https://img.shields.io/npm/v/discord-invites-tracker.svg" alt="npm version" /></a>
-    <a href="https://www.npmjs.com/package/discord-invites-tracker"><img src="https://img.shields.io/npm/dt/discord-invites-tracker.svg" alt="npm downloads" /></a>
+    <a href="https://discord.gg/MguNNgXQTv"><img src="https://img.shields.io/discord/910543613560250398" alt="discord server" /></a>
+    <a href="https://www.npmjs.com/package/discord-invites-tracker-sqlite"><img src="https://img.shields.io/npm/v/discord-invites-tracker-sqlite.svg" alt="npm version" /></a>
+    <a href="https://www.npmjs.com/package/discord-invites-tracker-sqlite"><img src="https://img.shields.io/npm/dt/discord-invites-tracker-sqlite.svg" alt="npm downloads" /></a>
   </p>
 </div>
 
