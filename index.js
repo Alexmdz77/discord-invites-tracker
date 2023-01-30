@@ -131,6 +131,7 @@ module.exports = class extends EventEmitter {
                     total: userData.invites.total == 0 ? 0 : userData.invites.total - 1
                 }
             } else userData = {
+                ...userData,
                 guildId: guild.id,
                 userId: data.invitedBy.id,
                 invites: {
@@ -213,6 +214,7 @@ module.exports = class extends EventEmitter {
             let userData = await db.get(`invitestracker_${member.guild.id}_${member.user.id}`);
             if (!userData || !userData.invites){
                 userData = {
+                    ...userData,
                     guildId: member.guild.id,
                     userId: member.user.id,
                     invites: {
@@ -240,6 +242,7 @@ module.exports = class extends EventEmitter {
             let userData = await db.get(`invitestracker_${member.guild.id}_${member.user.id}`);
             if (!userData || !userData.invites){
                 userData = {
+                    ...userData,
                     guildId: member.guild.id,
                     userId: member.user.id,
                     invites: {
@@ -277,6 +280,7 @@ module.exports = class extends EventEmitter {
             let userData = await db.get(`invitestracker_${member.guild.id}_${member.user.id}`)
             if (!userData || !userData.invites){
                 userData = {
+                    ...userData,
                     guildId: member.guild.id,
                     userId: member.user.id,
                     invites: {
