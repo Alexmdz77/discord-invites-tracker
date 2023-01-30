@@ -84,7 +84,6 @@ module.exports = class extends EventEmitter {
                     return this.emit('guildMemberAdd', member);
                 }
             };
-            console.log(isVanity)
             if (!isVanity) return;
             member.inviter = 'vanity';
             let getData = await new Promise(async (resolve) => {
