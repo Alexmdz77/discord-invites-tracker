@@ -46,6 +46,7 @@ module.exports = class extends EventEmitter {
                             ...userData,
                             guildId: guild.id,
                             userId: member.id,
+                            leaves: [],
                             invitedBy: user_inviter
                         };
                     } else {
@@ -57,8 +58,10 @@ module.exports = class extends EventEmitter {
                         let user_inviter_data = await db.get(`invitestracker_${guild.id}_${inviter}`);
                         if (!user_inviter_data || !user_inviter_data.invites) {
                             user_inviter_data = {
+                                ...user_inviter_data,
                                 guildId: guild.id,
                                 userId: inviter,
+                                leaves: [],
                                 invites: {
                                     regular: 0,
                                     bonus: 0,
@@ -68,12 +71,28 @@ module.exports = class extends EventEmitter {
                                 }
                             };
                         };
-                        user_inviter_data.invites = {
-                            regular: user_inviter_data.invites.regular + 1,
-                            bonus: user_inviter_data.invites.bonus,
-                            leaves: user_inviter_data.invites.leaves,
-                            fake: user_inviter_data.invites.fake,
-                            total: user_inviter_data.invites.total + 1
+                        if (user_inviter_data.leaves.includes(member.id)) {
+
+                            let remove_id = user_inviter_data.leaves
+                            let index = remove_id.indexOf(member.id)
+
+                            if (index > -1) remove_id.splice(index, 1)
+                            user_inviter_data.invites = {
+                                regular: user_inviter_data.invites.regular,
+                                bonus: user_inviter_data.invites.bonus,
+                                leaves: user_inviter_data.leaves.length,
+                                fake: user_inviter_data.invites.fake,
+                                total: user_inviter_data.invites.total + 1
+                            }
+
+                        } else {
+                            user_inviter_data.invites = {
+                                regular: user_inviter_data.invites.regular + 1,
+                                bonus: user_inviter_data.invites.bonus,
+                                leaves: user_inviter_data.leaves.length,
+                                fake: user_inviter_data.invites.fake,
+                                total: user_inviter_data.invites.total + 1
+                            }
                         }
                         await db.set(`invitestracker_${guild.id}_${inviter}`, user_inviter_data);
                         resolve(user_inviter_data);
@@ -93,10 +112,11 @@ module.exports = class extends EventEmitter {
                         guildId: guild.id,
                         userId: member.id,
                         invitedBy: "vanity",
+                        leaves: [],
                         invites: {
                             regular: 0,
                             bonus: 0,
-                            leaves: 0,
+                            leaves: userData.leaves.length,
                             fake: 0,
                             total: 0
                         }
@@ -105,7 +125,7 @@ module.exports = class extends EventEmitter {
                 userData.invites = {
                     regular: userData.invites.regular,
                     bonus: userData.invites.bonus,
-                    leaves: userData.invites.leaves,
+                    leaves: userData.leaves.length,
                     fake: userData.invites.fake,
                     total: userData.invites.total
                 }
@@ -123,10 +143,11 @@ module.exports = class extends EventEmitter {
             if(data.invitedBy === 'vanity') return;
             let userData = await db.get(`invitestracker_${guild.id}_${data.invitedBy.id}`);
             if (userData && userData.invites) {
+                userData.leaves.push(member.id)
                 userData.invites = {
                     regular: userData.invites.regular,
                     bonus: userData.invites.bonus,
-                    leaves: userData.invites.leaves + 1,
+                    leaves: userData.leaves.length,
                     fake: userData.invites.fake,
                     total: userData.invites.total == 0 ? 0 : userData.invites.total - 1
                 }
@@ -137,7 +158,7 @@ module.exports = class extends EventEmitter {
                 invites: {
                     regular: 0,
                     bonus: 0,
-                    leaves: 1,
+                    leaves: userData.leaves.length,
                     fake: 0,
                     total: 0
                 }
