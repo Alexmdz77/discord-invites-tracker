@@ -63,37 +63,39 @@ module.exports = class extends EventEmitter {
                                 userId: inviter,
                                 leaves: [],
                                 invites: {
-                                    regular: 0,
+                                    regular: 1,
                                     bonus: 0,
                                     leaves: 0,
                                     fake: 0,
-                                    total: 0
+                                    total: 1
                                 }
                             };
-                        };
-                        if (user_inviter_data.leaves.includes(member.id)) {
-
-                            let remove_id = user_inviter_data.leaves
-                            let index = remove_id.indexOf(member.id)
-
-                            if (index > -1) remove_id.splice(index, 1)
-                            user_inviter_data.invites = {
-                                regular: user_inviter_data.invites.regular,
-                                bonus: user_inviter_data.invites.bonus,
-                                leaves: user_inviter_data.leaves.length,
-                                fake: user_inviter_data.invites.fake,
-                                total: user_inviter_data.invites.total + 1
-                            }
-
                         } else {
-                            user_inviter_data.invites = {
-                                regular: user_inviter_data.invites.regular + 1,
-                                bonus: user_inviter_data.invites.bonus,
-                                leaves: user_inviter_data.leaves.length,
-                                fake: user_inviter_data.invites.fake,
-                                total: user_inviter_data.invites.total + 1
+                            if (user_inviter_data.leaves.includes(member.id)) {
+
+                                let remove_id = user_inviter_data.leaves
+                                let index = remove_id.indexOf(member.id)
+
+                                if (index > -1) remove_id.splice(index, 1)
+                                user_inviter_data.invites = {
+                                    regular: user_inviter_data.invites.regular,
+                                    bonus: user_inviter_data.invites.bonus,
+                                    leaves: user_inviter_data.leaves.length,
+                                    fake: user_inviter_data.invites.fake,
+                                    total: user_inviter_data.invites.total + 1
+                                }
+
+                            } else {
+                                user_inviter_data.invites = {
+                                    regular: user_inviter_data.invites.regular + 1,
+                                    bonus: user_inviter_data.invites.bonus,
+                                    leaves: user_inviter_data.leaves.length,
+                                    fake: user_inviter_data.invites.fake,
+                                    total: user_inviter_data.invites.total + 1
+                                }
                             }
                         }
+                        
                         await db.set(`invitestracker_${guild.id}_${inviter}`, user_inviter_data);
                         resolve(user_inviter_data);
                     });
@@ -116,7 +118,7 @@ module.exports = class extends EventEmitter {
                         invites: {
                             regular: 0,
                             bonus: 0,
-                            leaves: userData.leaves.length,
+                            leaves: 0,
                             fake: 0,
                             total: 0
                         }
@@ -158,7 +160,7 @@ module.exports = class extends EventEmitter {
                 invites: {
                     regular: 0,
                     bonus: 0,
-                    leaves: userData.leaves.length,
+                    leaves: 0,
                     fake: 0,
                     total: 0
                 }
