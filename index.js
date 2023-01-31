@@ -294,6 +294,7 @@ module.exports = class extends EventEmitter {
             if (!usersData) return;
             for (const userData of usersData) {
                 await db.set(`${userData.id}.invites`, {regular: 0, bonus: 0, leaves: 0, fake: 0, total: 0})
+                await db.set(`${userData.id}.leaves`, [])
             }
             return;
         }
@@ -306,6 +307,7 @@ module.exports = class extends EventEmitter {
                     ...userData,
                     guildId: member.guild.id,
                     userId: member.user.id,
+                    leaves: [],
                     invites: {
                         regular: 0,
                         bonus: 0,
@@ -315,12 +317,18 @@ module.exports = class extends EventEmitter {
                     }
                 };
             }
-            userData.invites = {
-                regular: 0,
-                bonus: 0,
-                leaves: 0,
-                fake: 0,
-                total: 0
+            userData = {
+                ...userData,
+                guildId: member.guild.id,
+                userId: member.user.id,
+                leaves: [],
+                invites: {
+                    regular: 0,
+                    bonus: 0,
+                    leaves: 0,
+                    fake: 0,
+                    total: 0
+                }
             }
             await db.set(`invitestracker_${member.guild.id}_${member.user.id}`, userData);
             return userData.invites;
